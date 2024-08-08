@@ -10,10 +10,10 @@ from toydatasets import ToyDatasets
 def main():
     n_samples = 500
     seed = 30
-    toy = ToyDatasets("./results", "./img")
+    toy = ToyDatasets("./results/toy.csv", "./img")
 
     points, labels = datasets.make_moons(n_samples=n_samples, noise=0.05, random_state=seed)
-    toy.add_dataset(points, labels, 2, img_name='moons')
+    toy.add_dataset(points, labels, 2, "moons")
 
 
 if __name__ == '__main__':
