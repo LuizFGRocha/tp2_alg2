@@ -57,7 +57,7 @@ class ToyDatasets():
 
         plt.scatter(X,Y, cmap=cmap, c=color_indices)
         
-        plt.savefig(f"{self.img_folder}/{self.names[idx]}", format='pdf')
+        plt.savefig(f"{self.img_folder}/{self.names[idx]}.pdf", format='pdf')
 
     def test_datasets(self, itr=30):
         'Test all datasets for itr iterations'
