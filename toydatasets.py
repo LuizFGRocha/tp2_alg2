@@ -84,20 +84,20 @@ class ToyDatasets():
     def test_datasets(self, itr=30):
         'Test all datasets for itr iterations'
         for idx, (inst, name) in enumerate(zip(self.instances, self.names)):
-            best_C, best_labels, best_r = None, None, np.inf
+            best_C, best_labels, radiuses, best_r = None, None, None, np.inf
             for _ in range(itr):
                 (C, labels, radius), exec_time = self.time_execution(inst.k_clusters)
 
                 max_r = max(radius)
                 if max_r < best_r:
-                    best_C, best_labels, best_r = C, labels, max_r
+                    best_C, best_labels, radiuses, best_r = C, labels, radius, max_r
 
                 #Write results
                 self.write_results(idx, C, labels, radius, exec_time, "greedy")
             
             #Plot best result
             #Calculate associated circles
-            circles = list(zip(best_C, radius))
+            circles = list(zip(best_C, radiuses))
             self.plot_dataset_img(idx, best_labels, img_name=name + 'result', 
                                     circles=circles, title=f"Max radius: {best_r}")
 
