@@ -9,11 +9,11 @@ class Instance:
     def __init__(self, S, k, dist_matrix):
         self.S = S
         self.k = k
-        self.dist_matrix = dist_matrix
+        self.dist = dist_matrix
 
     def k_clusters_r(self, max_r):
         'Solves K-means using max radius 2-approximation algorithm'
-        S = np.random.permutation(self.S) # Permute S for different results
+        S = list(np.random.permutation(self.S)) # Permute S for different results, convert to list for pop
         if self.k >= len(S):
             return S
 
@@ -34,7 +34,7 @@ class Instance:
 
     def k_clusters(self):
         'Solves K-means through greedy 2-approximation algorithm'
-        S = np.random.permutation(self.S)
+        S = list(np.random.permutation(self.S)) #Convert to list for pop()
         if self.k >= len(S):
             return S
     
@@ -68,17 +68,23 @@ class Instance:
     def cluster_map(self, C):
         'Maps each element from S to a cluster in C, according to its lowest distance.'
         map = []
+        radius = [0] * len(C) #Start radius as 0
 
         for Si in self.S:
             min_dist = np.inf
             min_s = None
+            min_idx = None
 
-            for Cj in C:
+            for idx, Cj in enumerate(C):
                 d = self.dist[Si, Cj]
                 if d < min_dist:
                     min_dist = d
                     min_s = Cj
+                    min_idx = idx
+        
+            if min_dist > radius[min_idx]:
+                radius[min_idx] = min_dist
 
             map.append(min_s)
 
-        return map
+        return map, radius
