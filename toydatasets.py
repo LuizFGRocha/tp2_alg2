@@ -26,7 +26,7 @@ class ToyDatasets():
         dist = self.make_dist_matrix(points, p)
         #Make labels
         S = list(range(len(points)))
-        inst =  Instance(S, k, dist)
+        inst =  Instance(S, k, points, dist)
 
         self.data_points.append(points)
         self.data_labels.append(labels)
@@ -34,7 +34,6 @@ class ToyDatasets():
         self.names.append(name)
 
         self.plot_dataset_img(len(self.instances) - 1)
-
 
     def make_dist_matrix(self, points, p):
         'Returns a distance matrix based on dataset points and p value for minkowski distance'
@@ -65,8 +64,8 @@ class ToyDatasets():
 
         if circles is not None:
             #Also plot circles
-            for origin, radius, lab in circles:
-                circ = plt.Circle(origin, radius, color=cmap(label_to_color[lab]), fill=False)
+            for idx, (origin, radius) in enumerate(circles):
+                circ = plt.Circle(origin, radius, color=cmap(label_to_color[idx]), fill=False)
                 ax.scatter([origin[0]], [origin[1]], c='r')
                 ax.add_patch(circ)
 
@@ -74,34 +73,39 @@ class ToyDatasets():
         fig.suptitle(title)
         plt.savefig(f"{self.img_folder}/{self.names[idx] if img_name == '' else img_name}.pdf", format='pdf')
 
+    def time_execution(self, fn, *args):
+        'Runs fn function with args, also returning execution time'
+        start = time()
+        res = fn(*args)
+        exec_time = time() - start
+                
+        return res, exec_time
+
     def test_datasets(self, itr=30):
         'Test all datasets for itr iterations'
         for idx, (inst, name) in enumerate(zip(self.instances, self.names)):
+            best_C, best_labels, best_r = None, None, np.inf
             for _ in range(itr):
-                start = time()
-                C = inst.k_clusters()
-                exec_time = time() - start
-                labels, radius = inst.cluster_map(C)
-                
-                #Calculate associated circles
-                circles = list(zip([self.data_points[idx][p] for p in C], radius, C))
+                (C, labels, radius), exec_time = self.time_execution(inst.k_clusters)
 
-                #Plot result
-                self.plot_dataset_img(idx, labels, img_name=self.names[idx] + 'result', 
-                                      circles=circles, title=f"Max radius: {max(radius)}")
+                max_r = max(radius)
+                if max_r < best_r:
+                    best_C, best_labels, best_r = C, labels, max_r
 
                 #Write results
-                self.write_results(idx, C, labels, radius, exec_time, "a")
+                self.write_results(idx, C, labels, radius, exec_time, "greedy")
+            
+            #Plot best result
+            #Calculate associated circles
+            circles = list(zip(best_C, radius))
+            self.plot_dataset_img(idx, best_labels, img_name=name + 'result', 
+                                    circles=circles, title=f"Max radius: {best_r}")
 
     def write_results(self, idx, C, labels, radius, exec_time, method):
         'Writes relevant results for the csv'
-        max_radius = max(radius)
-        #TODO ver melhor como funciona essas duas metricas
-        sil = silhouette_score(self.instances[idx].dist, labels)
-        #adjrand = adjusted_rand_score()
-        adjrand = None
-        
 
-        with open(self.csv_output_file, 'w') as f:
-            #f.write("instance,radius,silhouette,adj_rand_score,exec_time,method\n")
-            f.write(f"{self.names[idx]},{max_radius},{sil},{adjrand},{exec_time},{method}")
+        sil = silhouette_score(self.instances[idx].dist, labels)
+        adjrand = adjusted_rand_score(self.data_labels[idx],labels)
+        
+        with open(self.csv_output_file, 'a') as f:
+            f.write(f"{self.names[idx]},{radius},{sil},{adjrand},{exec_time},{method}\n")

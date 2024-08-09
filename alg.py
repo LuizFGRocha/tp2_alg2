@@ -1,4 +1,5 @@
 import numpy as np
+from sklearn.cluster import KMeans
 
 # S: conjunto de pontos
 # C: resultado, pontos que representam centros
@@ -6,10 +7,13 @@ import numpy as np
 # Queremos minimizar o raio dos clusters: min max dist(Si, Cj)
 
 class Instance:
-    def __init__(self, S, k, dist_matrix):
+    def __init__(self, S, k, X, dist_matrix):
         self.S = S
         self.k = k
+        self.X = X
         self.dist = dist_matrix
+
+        self.KMeans = KMeans(n_clusters=k)
 
     def k_clusters_r(self, max_r):
         'Solves K-means using max radius 2-approximation algorithm'
@@ -30,7 +34,12 @@ class Instance:
         if len(C) > self.k:
             return None
         
-        return C
+        labels, radius = self.cluster_map(C)
+        
+        #Update C with positions from actual
+        C = [self.X[c] for c in C]
+
+        return C, labels, radius
 
     def k_clusters(self):
         'Solves K-means through greedy 2-approximation algorithm'
@@ -62,8 +71,22 @@ class Instance:
 
             C.append(max_s)
             S.remove(max_s)
+        
+        labels, radius = self.cluster_map(C)
 
-            return C
+        #Update C with actual positions
+        C = [self.X[c] for c in C]
+
+        return C, labels, radius
+
+    def scikit_k_clusters(self):
+        'Solves k-means using scikit implementation'
+        
+        kmeans = self.KMeans.fit(self.X)
+
+        #Need to calculate radius for each cluster
+        
+        return kmeans.cluster_centers_, kmeans.labels_, [1,2]
 
     def cluster_map(self, C):
         'Maps each element from S to a cluster in C, according to its lowest distance.'
@@ -72,19 +95,17 @@ class Instance:
 
         for Si in self.S:
             min_dist = np.inf
-            min_s = None
             min_idx = None
 
             for idx, Cj in enumerate(C):
                 d = self.dist[Si, Cj]
                 if d < min_dist:
                     min_dist = d
-                    min_s = Cj
                     min_idx = idx
         
             if min_dist > radius[min_idx]:
                 radius[min_idx] = min_dist
 
-            map.append(min_s)
+            map.append(min_idx)
 
         return map, radius

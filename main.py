@@ -14,7 +14,7 @@ def main():
 
     points, labels = datasets.make_moons(n_samples=n_samples, noise=0.05, random_state=seed)
     toy.add_dataset(points, labels, 2, "moons")
-    toy.test_datasets(1)
+    toy.test_datasets()
 
 
 if __name__ == '__main__':
