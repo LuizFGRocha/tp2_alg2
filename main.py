@@ -6,6 +6,7 @@ from sklearn.neighbors import kneighbors_graph
 from sklearn.preprocessing import StandardScaler
 
 from toydatasets import ToyDatasets
+from util import read_custom_synthetic
 
 def main():
     n_samples = 500
@@ -19,6 +20,9 @@ def main():
                     3, "blobs")
 
     toy.add_dataset(*datasets.make_circles(n_samples=500, random_state=seed), 2, "circles")
+
+    p, l, k = read_custom_synthetic("./syn-instances/test.dat")
+    toy.add_dataset(p,l,k,"custom")
 
     #TODO achar mais datasets
 

@@ -36,7 +36,11 @@ def main():
     all_points = []
 
     with open(args.filename, 'w') as f:
-        f.write(f"{args.k};{args.cov_list};{args.points_per_center};{args.centers}\n") #Write header
+        f.write(f"CENTERS:{args.k}\n")
+        f.write(f"COV:{args.cov_list}\n")
+        f.write(f"POINTS_PER_CENTER:{args.points_per_center}\n")
+        f.write(f"CENTERS_COORDS:{args.centers}\n")
+        f.write(f"POINTS/LABELS: \n")
 
         for idx, center in enumerate(args.centers):
             dist = multivariate_normal(center, np.array(args.cov_list).reshape((2,2)), allow_singular=True)
