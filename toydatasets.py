@@ -26,7 +26,7 @@ class ToyDatasets():
         dist = self.make_dist_matrix(points, p)
         #Make labels
         S = list(range(len(points)))
-        inst =  Instance(S, k, points, dist)
+        inst =  Instance(S, k, points, p, dist)
 
         self.data_points.append(points)
         self.data_labels.append(labels)
@@ -84,22 +84,23 @@ class ToyDatasets():
     def test_datasets(self, itr=30):
         'Test all datasets for itr iterations'
         for idx, (inst, name) in enumerate(zip(self.instances, self.names)):
-            best_C, best_labels, radiuses, best_r = None, None, None, np.inf
-            for _ in range(itr):
-                (C, labels, radius), exec_time = self.time_execution(inst.k_clusters)
+            for method, method_name in zip([inst.scikit_k_clusters, inst.k_clusters], ["scikit", "greedy"]):
+                best_C, best_labels, radiuses, best_r = None, None, None, np.inf
+                for _ in range(itr):
+                    (C, labels, radius), exec_time = self.time_execution(method)
 
-                max_r = max(radius)
-                if max_r < best_r:
-                    best_C, best_labels, radiuses, best_r = C, labels, radius, max_r
+                    max_r = max(radius)
+                    if max_r < best_r:
+                        best_C, best_labels, radiuses, best_r = C, labels, radius, max_r
 
-                #Write results
-                self.write_results(idx, C, labels, radius, exec_time, "greedy")
-            
-            #Plot best result
-            #Calculate associated circles
-            circles = list(zip(best_C, radiuses))
-            self.plot_dataset_img(idx, best_labels, img_name=name + 'result', 
-                                    circles=circles, title=f"Max radius: {best_r}")
+                    #Write results
+                    self.write_results(idx, C, labels, max_r, exec_time, method_name)
+                
+                #Plot best result
+                #Calculate associated circles
+                circles = list(zip(best_C, radiuses))
+                self.plot_dataset_img(idx, best_labels, img_name=name + method_name, 
+                                        circles=circles, title=f"Max radius: {best_r}")
 
     def write_results(self, idx, C, labels, radius, exec_time, method):
         'Writes relevant results for the csv'
@@ -108,4 +109,4 @@ class ToyDatasets():
         adjrand = adjusted_rand_score(self.data_labels[idx],labels)
         
         with open(self.csv_output_file, 'a') as f:
-            f.write(f"{self.names[idx]},{radius},{sil},{adjrand},{exec_time},{method}\n")
+            f.write(f"{self.names[idx]},{float(radius)},{float(sil)},{float(adjrand)},{exec_time},{method}\n")

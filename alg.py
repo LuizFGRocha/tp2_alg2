@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.cluster import KMeans
+from util import minkowski_distance
 
 # S: conjunto de pontos
 # C: resultado, pontos que representam centros
@@ -7,10 +8,11 @@ from sklearn.cluster import KMeans
 # Queremos minimizar o raio dos clusters: min max dist(Si, Cj)
 
 class Instance:
-    def __init__(self, S, k, X, dist_matrix):
+    def __init__(self, S, k, X, p, dist_matrix):
         self.S = S
         self.k = k
         self.X = X
+        self.p = p
         self.dist = dist_matrix
 
         self.KMeans = KMeans(n_clusters=k)
@@ -85,8 +87,22 @@ class Instance:
         kmeans = self.KMeans.fit(self.X)
 
         #Need to calculate radius for each cluster
+        radius = [0] * len(kmeans.cluster_centers_)
+
+        for x in self.X:
+            min_dist = np.inf
+            min_idx = None
+
+            for idx, Cj in enumerate(kmeans.cluster_centers_):
+                d = minkowski_distance(x, Cj, self.p)
+                if d < min_dist:
+                    min_dist = d
+                    min_idx = idx
+            
+            if min_dist > radius[min_idx]:
+                radius[min_idx] = min_dist
         
-        return kmeans.cluster_centers_, kmeans.labels_, [1,2]
+        return kmeans.cluster_centers_, kmeans.labels_, radius
 
     def cluster_map(self, C):
         'Maps each element from S to a cluster in C, according to its lowest distance.'
