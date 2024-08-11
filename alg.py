@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.cluster import KMeans
 from util import minkowski_distance
+from copy import deepcopy
 
 # S: conjunto de pontos
 # C: resultado, pontos que representam centros
@@ -17,9 +18,8 @@ class Instance:
 
         self.KMeans = KMeans(n_clusters=k)
 
-    def k_clusters_r(self, max_r):
+    def k_clusters_r(self, S, max_r):
         'Solves K-means using max radius 2-approximation algorithm'
-        S = list(np.random.permutation(self.S)) # Permute S for different results, convert to list for pop
         if self.k >= len(S):
             return S
 
@@ -90,19 +90,22 @@ class Instance:
                 if self.dist[Si, Sj] > max_r:
                     max_r = self.dist[Si, Sj]
 
-        return self.recursive_k_clusters(0, max_r)
+        S = list(np.random.permutation(self.S))
+
+        return self.recursive_k_clusters(S, 0, max_r)
     
-    def recursive_k_clusters(self, lower_bound, upper_bound, epsilon=1e-6):
+    def recursive_k_clusters(self, S, lower_bound, upper_bound, epsilon=1e-6):
         if upper_bound - lower_bound < epsilon:
-            return self.k_clusters_r(upper_bound)
+            a = self.k_clusters_r(deepcopy(S), upper_bound)
+            return a
 
         r = (upper_bound + lower_bound) / 2
-        C = self.k_clusters_r(r)
+        C = self.k_clusters_r(deepcopy(S), r)
 
         if C is None:
-            return self.recursive_k_clusters(r, upper_bound)
+            return self.recursive_k_clusters(S, r, upper_bound)
         else:
-            return self.recursive_k_clusters(lower_bound, r)
+            return self.recursive_k_clusters(S, lower_bound, r)
         
     def scikit_k_clusters(self):
         'Solves k-means using scikit implementation'
