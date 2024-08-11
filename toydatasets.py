@@ -18,7 +18,7 @@ class ToyDatasets():
 
         #Write .csv header
         with open(csv_output_file, 'w') as f:
-            f.write("instance,radius,silhouette,adj_rand_score,exec_time,method\n")
+            f.write("instance,radius,silhouette,adj_rand_score,exec_time,method,p\n")
 
     def add_dataset(self, points, labels, k, name, p=2):
         'Adds a sklearn toy dataset and adds a corresponding instance'
@@ -72,6 +72,7 @@ class ToyDatasets():
         ax.set_aspect('equal', 'box')
         fig.suptitle(title)
         plt.savefig(f"{self.img_folder}/{self.names[idx] if img_name == '' else img_name}.pdf", format='pdf')
+        plt.close()
 
     def time_execution(self, fn, *args):
         'Runs fn function with args, also returning execution time'
@@ -94,7 +95,7 @@ class ToyDatasets():
                         best_C, best_labels, radiuses, best_r = C, labels, radius, max_r
 
                     #Write results
-                    self.write_results(idx, C, labels, max_r, exec_time, method_name)
+                    self.write_results(idx, C, labels, max_r, exec_time, method_name, inst.p)
                 
                 #Plot best result
                 #Calculate associated circles
@@ -102,11 +103,11 @@ class ToyDatasets():
                 self.plot_dataset_img(idx, best_labels, img_name=name + method_name, 
                                         circles=circles, title=f"Max radius: {best_r}")
 
-    def write_results(self, idx, C, labels, radius, exec_time, method):
+    def write_results(self, idx, C, labels, radius, exec_time, method, p):
         'Writes relevant results for the csv'
 
         sil = silhouette_score(self.instances[idx].dist, labels)
         adjrand = adjusted_rand_score(self.data_labels[idx],labels)
         
         with open(self.csv_output_file, 'a') as f:
-            f.write(f"{self.names[idx]},{float(radius)},{float(sil)},{float(adjrand)},{exec_time},{method}\n")
+            f.write(f"{self.names[idx]},{float(radius)},{float(sil)},{float(adjrand)},{exec_time},{method},{p}\n")
