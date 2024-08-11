@@ -29,7 +29,7 @@ class Instance:
             s = S.pop()
             C.append(s)
 
-            for Si in S:
+            for Si in list(S):
                 if self.dist[Si, s] < 2 * max_r:
                     S.remove(Si)
 
@@ -80,7 +80,30 @@ class Instance:
         C = [self.X[c] for c in C]
 
         return C, labels, radius
+    
+    def refining_k_clusters(self):
+        max_r = 0
 
+        # Finds max radius
+        for Si in self.S:
+            for Sj in self.S:
+                if self.dist[Si, Sj] > max_r:
+                    max_r = self.dist[Si, Sj]
+
+        return self.recursive_k_clusters(0, max_r)
+    
+    def recursive_k_clusters(self, lower_bound, upper_bound, epsilon=1e-6):
+        if upper_bound - lower_bound < epsilon:
+            return self.k_clusters_r(upper_bound)
+
+        r = (upper_bound + lower_bound) / 2
+        C = self.k_clusters_r(r)
+
+        if C is None:
+            return self.recursive_k_clusters(r, upper_bound)
+        else:
+            return self.recursive_k_clusters(lower_bound, r)
+        
     def scikit_k_clusters(self):
         'Solves k-means using scikit implementation'
         

@@ -84,7 +84,7 @@ class ToyDatasets():
     def test_datasets(self, itr=30):
         'Test all datasets for itr iterations'
         for idx, (inst, name) in enumerate(zip(self.instances, self.names)):
-            for method, method_name in zip([inst.scikit_k_clusters, inst.k_clusters], ["scikit", "greedy"]):
+            for method, method_name in zip([inst.scikit_k_clusters, inst.k_clusters, inst.refining_k_clusters], ["scikit", "greedy", "refining"]):
                 best_C, best_labels, radiuses, best_r = None, None, None, np.inf
                 for _ in range(itr):
                     (C, labels, radius), exec_time = self.time_execution(method)
