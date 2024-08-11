@@ -96,8 +96,7 @@ class Instance:
     
     def recursive_k_clusters(self, S, lower_bound, upper_bound, epsilon=1e-6):
         if upper_bound - lower_bound < epsilon:
-            a = self.k_clusters_r(deepcopy(S), upper_bound)
-            return a
+            return self.k_clusters_r(deepcopy(S), upper_bound)
 
         r = (upper_bound + lower_bound) / 2
         C = self.k_clusters_r(deepcopy(S), r)
