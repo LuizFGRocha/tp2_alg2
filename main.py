@@ -20,7 +20,7 @@ def read_all_synthetic(toy, dir):
 def read_all_real(toy, dir):
     'Reads all instances in directory and add them as dataset in toy'
     files = os.listdir(dir)
-    
+
     for file in files:
         p,l,k = read_real(f"{dir}/{file}")
         toy.test_dataset(p,l,k,file.split(".")[0])
@@ -73,8 +73,6 @@ def main():
 
     #Ler todas as instancias reais
     read_all_real(toy, "./real-instances")
-
-    toy.test_datasets()
 
 if __name__ == '__main__':
     main()
