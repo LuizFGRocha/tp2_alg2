@@ -1,9 +1,8 @@
 from alg import Instance
 from sklearn.metrics import silhouette_score, adjusted_rand_score
-from time import time
 import numpy as np
 import matplotlib.pyplot as plt
-from util import build_dist_matrix
+from util import build_dist_matrix, time_execution
 import multiprocessing as mp
 
 class ToyDatasets():
@@ -76,28 +75,24 @@ class ToyDatasets():
         plt.savefig(f"{self.img_folder}/{self.curr_name if img_name == '' else img_name}.pdf", format='pdf')
         plt.close()
 
-    def time_execution(self, fn, *args):
-        'Runs fn function with args, also returning execution time'
-        start = time()
-        res = fn(*args)
-        exec_time = time() - start
-                
-        return res, exec_time
-
     def test_curr_dataset(self, itr=30):
         'Test current dataset for itr iterations'
         inst = self.curr_instance
         for method, method_name in zip([inst.scikit_k_clusters, inst.k_clusters, inst.refining_k_clusters], ["scikit", "greedy", "refining"]):
             best_C, best_labels, radiuses, best_r = None, None, None, np.inf
-            for _ in range(itr):
-                (C, labels, radius), exec_time = self.time_execution(method)
+            
+            results = self.pool.starmap(time_execution, [(method,)] * itr)
 
+            #Write all results
+            for (C, labels, radius), exec_time in results:
                 max_r = max(radius)
-                if max_r < best_r:
-                    best_C, best_labels, radiuses, best_r = C, labels, radius, max_r
-
-                #Write results
                 self.write_results(self.curr_name, C, labels, max_r, exec_time, method_name, inst.p)
+
+            #Get best result
+            best_r_ind = np.argmin([max(r) for (_,_,r), _ in results])
+
+            (best_C, best_labels, radiuses), _ = results[best_r_ind]
+            best_r = max(radiuses)
             
             #Plot best result
             #Calculate associated circles

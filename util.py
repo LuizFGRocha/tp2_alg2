@@ -1,5 +1,6 @@
 import numpy as np
 from numba import njit
+from time import process_time
 
 @njit
 def minkowski_distance(x,y,p=2):
@@ -66,3 +67,11 @@ def build_dist_matrix(points, p):
             d = minkowski_distance(points[i], points[j], p)
             dist_m[i,j] = dist_m[j,i] = d
     return dist_m
+
+def time_execution(fn, *args):
+    'Runs fn function with args, also returning execution time'
+    start = process_time()
+    res = fn(*args)
+    exec_time = process_time() - start
+            
+    return res, exec_time
