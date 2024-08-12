@@ -5,6 +5,7 @@ from time import time
 
 import numpy as np
 import matplotlib.pyplot as plt
+from util import build_dist_matrix
 
 class ToyDatasets():
     def __init__(self, csv_output_file, img_folder):
@@ -38,8 +39,7 @@ class ToyDatasets():
     def make_dist_matrix(self, points, p):
         'Returns a distance matrix based on dataset points and p value for minkowski distance'
 
-        #Can sacrifice one liner for performance assuming points are geometric, only calculate half the points
-        return np.array([np.array([minkowski_distance(p1,p2,p) for p2 in points]) for p1 in points])
+        return build_dist_matrix(points, p)
 
     def plot_dataset_img(self, idx, labels=None, img_name='', circles=None, title=''):
         'Plots the dataset in index idx as a .pdf file with path img_folder/img_name'

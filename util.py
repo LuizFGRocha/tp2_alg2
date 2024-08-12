@@ -1,5 +1,7 @@
 import numpy as np
+from numba import njit
 
+@njit
 def minkowski_distance(x,y,p=2):
     return np.sum(np.abs(x - y) ** p) ** (1/p)
 
@@ -53,3 +55,14 @@ def read_real(filename):
                 in_points = True
 
     return np.array(points), np.array(labels), centers
+
+@njit
+def build_dist_matrix(points, p):
+    n = len(points)
+    dist_m = np.zeros((n,n))
+
+    for i in range(0,n):
+        for j in range(i+1,n):
+            d = minkowski_distance(points[i], points[j], p)
+            dist_m[i,j] = dist_m[j,i] = d
+    return dist_m
