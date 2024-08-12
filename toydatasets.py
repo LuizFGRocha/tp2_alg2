@@ -6,8 +6,8 @@ from util import build_dist_matrix, time_execution
 import multiprocessing as mp
 
 #This must be out of the original class to call from pool
-def single_test_and_write(inst, og_labels, method):
-        (C,labels,radius), exec_time = time_execution(method)
+def single_test_and_write(inst, og_labels, method, *args):
+        (C,labels,radius), exec_time = time_execution(method, *args)
         sil = silhouette_score(inst.dist, labels, metric="precomputed")
         adjrand = adjusted_rand_score(og_labels,labels)
 
@@ -89,6 +89,30 @@ class ToyDatasets():
         print("Now testing", self.curr_name)
         for method, method_name in zip([inst.scikit_k_clusters, inst.k_clusters, inst.refining_k_clusters], ["scikit", "greedy", "refining"]):
             best_C, best_labels, radiuses, best_r = None, None, None, np.inf
+
+            #Makes refining method run 5 times, each with a different eps
+            if method_name == "refining":
+                for niter in range(2, 7):
+                    method_with_iter = method_name + str(1/2**niter)
+                    results = self.pool.starmap(single_test_and_write, [(inst, self.curr_labels, method, niter)] * itr)
+
+                    #Write results
+                    for (C,labels,radius), exec_time, (sil, adjrand) in results:
+                        self.write_results(self.curr_name, sil, adjrand, max(radius), exec_time, method_with_iter, self.curr_instance.p)
+
+                    #Get best result
+                    best_r_ind = np.argmin([max(r) for (_,_,r), _, _ in results])
+
+                    (best_C, best_labels, radiuses), _, _ = results[best_r_ind]
+                    best_r = max(radiuses)
+
+                    #Plot best result
+                    #Calculate associated circles
+                    circles = list(zip(best_C, radiuses))
+                    self.plot_dataset_img(best_labels, img_name=self.curr_name + method_with_iter + str(niter), 
+                                        circles=circles, title=f"Max radius: {best_r}")
+            
+                continue
             
             results = self.pool.starmap(single_test_and_write, [(inst, self.curr_labels, method)] * itr)
 

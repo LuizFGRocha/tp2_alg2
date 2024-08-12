@@ -81,8 +81,9 @@ class Instance:
 
         return C, labels, radius
     
-    def refining_k_clusters(self):
+    def refining_k_clusters(self, niter=-1):
         max_r = 0
+        epsilon = 1e-6
 
         # Finds max radius
         for Si in self.S:
@@ -90,9 +91,12 @@ class Instance:
                 if self.dist[Si, Sj] > max_r:
                     max_r = self.dist[Si, Sj]
 
+        if niter != -1:
+            epsilon = max_r / 2 ** niter
+
         S = list(np.random.permutation(self.S))
 
-        return self.recursive_k_clusters(S, 0, max_r)
+        return self.recursive_k_clusters(S, 0, max_r, epsilon=epsilon)
     
     def recursive_k_clusters(self, S, lower_bound, upper_bound, epsilon=1e-6):
         if upper_bound - lower_bound < epsilon:
