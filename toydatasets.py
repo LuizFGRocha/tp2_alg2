@@ -8,7 +8,7 @@ import multiprocessing as mp
 #This must be out of the original class to call from pool
 def single_test_and_write(inst, og_labels, method):
         (C,labels,radius), exec_time = time_execution(method)
-        sil = silhouette_score(inst.dist, labels)
+        sil = silhouette_score(inst.dist, labels, metric="precomputed")
         adjrand = adjusted_rand_score(og_labels,labels)
 
         return (C,labels,radius), exec_time, (sil, adjrand)
@@ -86,6 +86,7 @@ class ToyDatasets():
     def test_curr_dataset(self, itr=30):
         'Test current dataset for itr iterations'
         inst = self.curr_instance
+        print("Now testing", self.curr_name)
         for method, method_name in zip([inst.scikit_k_clusters, inst.k_clusters, inst.refining_k_clusters], ["scikit", "greedy", "refining"]):
             best_C, best_labels, radiuses, best_r = None, None, None, np.inf
             
