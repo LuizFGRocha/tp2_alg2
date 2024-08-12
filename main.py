@@ -7,7 +7,7 @@ from sklearn.neighbors import kneighbors_graph
 from sklearn.preprocessing import StandardScaler
 
 from toydatasets import ToyDatasets
-from util import read_custom_synthetic
+from util import read_custom_synthetic, read_real
 
 def read_all_synthetic(toy, dir):
     'Reads all instances in directory and add them as dataset in toy'
@@ -15,6 +15,14 @@ def read_all_synthetic(toy, dir):
     
     for file in files:
         p,l,k = read_custom_synthetic(f"{dir}/{file}")
+        toy.add_dataset(p,l,k,file.split(".")[0])
+
+def read_all_real(toy, dir):
+    'Reads all instances in directory and add them as dataset in toy'
+    files = os.listdir(dir)
+    
+    for file in files:
+        p,l,k = read_real(f"{dir}/{file}")
         toy.add_dataset(p,l,k,file.split(".")[0])
 
 def gen_scikit_datasets(toy, n_samples = 500, seed = 30):
@@ -62,6 +70,9 @@ def main():
 
     #Ler todas as sinteticas custom
     read_all_synthetic(toy, "./syn-instances")
+
+    #Ler todas as instancias reais
+    read_all_real(toy, "./real-instances")
 
     toy.test_datasets()
 
