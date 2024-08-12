@@ -5,6 +5,14 @@ import matplotlib.pyplot as plt
 from util import build_dist_matrix, time_execution
 import multiprocessing as mp
 
+#This must be out of the original class to call from pool
+def single_test_and_write(inst, og_labels, method):
+        (C,labels,radius), exec_time = time_execution(method)
+        sil = silhouette_score(inst.dist, labels)
+        adjrand = adjusted_rand_score(og_labels,labels)
+
+        return (C,labels,radius), exec_time, (sil, adjrand)
+
 class ToyDatasets():
     def __init__(self, csv_output_file, img_folder):
         self.curr_points = []
@@ -81,17 +89,16 @@ class ToyDatasets():
         for method, method_name in zip([inst.scikit_k_clusters, inst.k_clusters, inst.refining_k_clusters], ["scikit", "greedy", "refining"]):
             best_C, best_labels, radiuses, best_r = None, None, None, np.inf
             
-            results = self.pool.starmap(time_execution, [(method,)] * itr)
+            results = self.pool.starmap(single_test_and_write, [(inst, self.curr_labels, method)] * itr)
 
-            #Write all results
-            for (C, labels, radius), exec_time in results:
-                max_r = max(radius)
-                self.write_results(self.curr_name, C, labels, max_r, exec_time, method_name, inst.p)
+            #Write results
+            for (C,labels,radius), exec_time, (sil, adjrand) in results:
+                self.write_results(self.curr_name, sil, adjrand, max(radius), exec_time, method_name, self.curr_instance.p)
 
             #Get best result
-            best_r_ind = np.argmin([max(r) for (_,_,r), _ in results])
+            best_r_ind = np.argmin([max(r) for (_,_,r), _, _ in results])
 
-            (best_C, best_labels, radiuses), _ = results[best_r_ind]
+            (best_C, best_labels, radiuses), _, _ = results[best_r_ind]
             best_r = max(radiuses)
             
             #Plot best result
@@ -100,11 +107,8 @@ class ToyDatasets():
             self.plot_dataset_img(best_labels, img_name=self.curr_name + method_name, 
                                     circles=circles, title=f"Max radius: {best_r}")
 
-    def write_results(self, name, C, labels, radius, exec_time, method, p):
+    def write_results(self, name, sil, adjrand, radius, exec_time, method, p):
         'Writes relevant results for the csv'
-
-        sil = silhouette_score(self.curr_instance.dist, labels)
-        adjrand = adjusted_rand_score(self.curr_labels,labels)
         
         with open(self.csv_output_file, 'a') as f:
             f.write(f"{name},{float(radius)},{float(sil)},{float(adjrand)},{exec_time},{method},{p}\n")
