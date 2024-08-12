@@ -157,8 +157,11 @@ cython_debug/
 # vscode settings
 .vscode/
 
-# images
-img/
+# Images
+img/*.pdf
+
+# Results
+results/*
 
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
